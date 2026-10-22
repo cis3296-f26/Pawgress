@@ -64,10 +64,10 @@ env_path = Path(__file__).parent / ".env"
 print("Looking for:", env_path, "| exists:", env_path.exists())
 print("Loaded:", load_dotenv(env_path, override=True))
 
-token = os.getenv("DISCORD_TOKEN")
+token = os.getenv("POC_TOKEN")
 
 if not token:
-    raise ValueError("DISCORD_TOKEN not found. Check your .env file.")
+    raise ValueError("POC_TOKEN discord token not found. Check your .env file.")
 
 client = Client(intents=intents)
 client.run(token)
