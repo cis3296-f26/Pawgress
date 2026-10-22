@@ -9,6 +9,7 @@ class Pets(commands.Cog):
 
     # Commands here. We can add more commands like name, feed, etc.
     @app_commands.command(name="create_pet", description="Create a new pet for this channel")
+    
 
     async def create_pet(self, interaction: discord.Interaction):
     
@@ -20,6 +21,11 @@ class Pets(commands.Cog):
             new_pet = Pet(name="No name", animal_type="Dog") # Placeholders for now idk
             self.bot.pets[key] = new_pet
             await interaction.response.send_message("Your new pet has been created!", ephemeral=False)
+
+    @app_commands.command(name="help", description="list commands")
+
+    async def help(self, interaction: discord.Interaction):
+        await interaction.response.send_message("/help - list commands\n/create_pet - create a new pet", ephemeral=False)
 
 async def setup(bot):
     await bot.add_cog(Pets(bot))
