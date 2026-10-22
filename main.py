@@ -17,10 +17,11 @@ if not token:
 
 intents = discord.Intents.default()
 
+intents.message_content = True
 
 class PawgressBot(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix="!", intents=intents)
+        super().__init__(command_prefix="/", intents=intents)
         self.pets = {}  # This will remember the pet in-memory but we need to connect a database here eventually
 
     async def setup_hook(self):
