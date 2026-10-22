@@ -9,3 +9,6 @@ No build of the application is needed in order to run the Discord Bot as Pawgres
 
 ## Run
 If you want to run the bot for yourself on your local macine, run the python file locally. Normally you should be able to access the hosted bot by downloading it into your discord server.
+### Run commands:
+!help - bot will list commands
+!create - will create a new study bot for your group
