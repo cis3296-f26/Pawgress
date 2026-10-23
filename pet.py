@@ -1,6 +1,8 @@
 # PET STUFF
 # Eventually we can add other attributes like happiness, hunger, etc. This is jusr a placeholder for now
 
+PET_TYPES = ["Dog", "Cat", "Bunny", "Hamster", "Bird"] # Animals users can pick with /select_pet_type
+
 class Pet:
     def __init__ (self, name, animal_type):
         self.name = name
