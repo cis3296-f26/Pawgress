@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-
+import createTables
 
 
 env_path = Path(__file__).parent / ".env"
@@ -22,11 +22,11 @@ intents.message_content = True
 class PawgressBot(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix="/", intents=intents)
-        self.pets = {}  # This will remember the pet in-memory but we need to connect a database here eventually
 
     async def setup_hook(self):
+        await createTables.init_db()    # create tables first
         await self.load_extension("commands.petcmds")
-        await self.tree.sync()  # Tells discord which commands are available for the bot to use
+        await self.tree.sync()   # Tells discord which commands are available for the bot to use
 
     async def on_ready(self):
         print(f"Logged in as {self.user}")

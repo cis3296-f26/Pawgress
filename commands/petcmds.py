@@ -13,18 +13,16 @@ class Pets(commands.Cog):
     # Commands here. We can add more commands like name, feed, etc.
 
     #pet creation command
-    @app_commands.command(name="create_pet", description="Create a new pet for this channel")
+    @app_commands.command(name="create_pet", description="Create a new pet for this server")
     @app_commands.guild_only()
     async def create_pet(self, interaction: discord.Interaction):
         if await database.get_pet(interaction.guild_id):
             await interaction.response.send_message("This server already has a pet!")
             return
-
-        user_id = await database.get_or_create_user(
-            interaction.user.id, interaction.user.name
-        )
+        
         await database.create_pet(
-            interaction.guild_id, user_id, name="No name", pet_type="Dog" #placeholders
+            # placeholders
+            interaction.guild_id, name="No name", pet_type="Dog"
         )
         await interaction.response.send_message("Your new pet has been created!")
 
