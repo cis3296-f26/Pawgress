@@ -1,4 +1,15 @@
+#enviorment (keys)
 .env
-__pycache__
+
+#database
+database.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+#pychache
+__pycache__/
+*.py[cod]
+*$py.class
+.idea/
 commands/__pycache__
-.idea
