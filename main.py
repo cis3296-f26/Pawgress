@@ -29,7 +29,6 @@ class PawgressBot(commands.Bot):
         #Load command files
         await self.load_extension("commands.help")
         await self.load_extension("commands.pet")
-        print("Adding study commands")
         await self.load_extension("commands.study")
 
         #Tells discord which commands are available for the bot to use
