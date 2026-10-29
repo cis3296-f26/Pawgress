@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from pathlib import Path
 import createTables
 
-
 env_path = Path(__file__).parent / ".env"
 print("Looking for:", env_path, "| exists:", env_path.exists())
 print("Loaded:", load_dotenv(env_path, override=True))
@@ -24,9 +23,17 @@ class PawgressBot(commands.Bot):
         super().__init__(command_prefix="/", intents=intents)
 
     async def setup_hook(self):
-        await createTables.init_db()    # create tables first
-        await self.load_extension("commands.petcmds")
-        await self.tree.sync()   # Tells discord which commands are available for the bot to use
+        #Create tables first
+        await createTables.init_db()   
+
+        #Load command files
+        await self.load_extension("commands.help")
+        await self.load_extension("commands.pet")
+        print("Adding study commands")
+        await self.load_extension("commands.study")
+
+        #Tells discord which commands are available for the bot to use
+        await self.tree.sync()   
 
     async def on_ready(self):
         print(f"Logged in as {self.user}")
