@@ -27,7 +27,9 @@ async def init_db():
                 user_id       INTEGER PRIMARY KEY AUTOINCREMENT,
                 discord_id    TEXT NOT NULL UNIQUE,
                 username      TEXT NOT NULL,
-                coins INTEGER NOT NULL DEFAULT 0
+                coins INTEGER NOT NULL DEFAULT 0,
+                total_study_time INTEGER DEFAULT 0
+
             )
         """)
 
