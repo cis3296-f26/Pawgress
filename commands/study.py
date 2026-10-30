@@ -1,5 +1,6 @@
 import discord
 import database
+import techniques
 from discord import app_commands
 from discord.ext import commands
 import TimeTracker
@@ -10,6 +11,7 @@ class study(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.time_tracker = TimeTracker.TimeTracker()
+        self.sessions = {}
 
         self.study_techniques = {
             "pomodoro": self.start_pomodoro,
@@ -25,17 +27,12 @@ class study(commands.Cog):
             await interaction.response.send_message("Pet not found.")
             return
 
-        result = self.time_tracker.timer_stop(interaction.user.id)
-        message = self.time_tracker.get_time(interaction.user.id)
-
-        await database.add_study_time(
-        interaction.user.id, interaction.user.name, minutes=message
-        )
-        
-        if result == 0:
-            await interaction.response.send_message("Timer Stopped. Total Time: " + message)
-        else:
+        session = self.sessions.pop(interaction.user.id, None)
+        if session is None:
             await interaction.response.send_message("No timer to be stopped :(")
+            return
+        session_min = session.stop()
+        await interaction.response.send_message(f"Timer stopped. Studied for {session_min} minutes.")
 
     #SELECT STUDY TECHNIQUES AND START TIMER
     @app_commands.command(name="start", description="Start your study timer")
@@ -57,23 +54,25 @@ class study(commands.Cog):
         #Call whichever function needed for the selected method
         await self.study_techniques[view.choice](interaction)
 
-    
-    #POMODORO TECHNIQUE (to do)
+    async def begin(self, interaction: discord.Interaction, technique):
+        if interaction.user.id in self.sessions:
+            await interaction.followup.send("Already Studying!")
+            return
+
+        session = techniques.StudySession(interaction.user, interaction.channel, technique, self.time_tracker)
+        self.sessions[interaction.user.id] = session
+        session.start()
+
+        await interaction.followup.send(f"Started {technique.label}: {technique.description}")
+
     async def start_pomodoro(self, interaction):
-        self.time_tracker.timer_start(interaction.user.id)
-        await interaction.followup.send("To be implemented")
+        await self.begin(interaction, techniques.POMODORO)
 
-
-    #90 MIN BLOCK TECHNIQUE (to do)
     async def start_90minblock(self, interaction: discord.Interaction):
-        self.time_tracker.timer_start(interaction.user.id)
-        await interaction.followup.send("To be implemented")
+        await self.begin(interaction, techniques.NINETY_MIN_BLOCK)
 
-
-    #FREEFLOW (to do)
     async def start_freeflow(self, interaction):
-        self.time_tracker.timer_start(interaction.user.id)
-        await interaction.followup.send("To be implemented")
+        await self.begin(interaction, techniques.FLOWTIME)
 
 
 async def setup(bot):
