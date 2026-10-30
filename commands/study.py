@@ -55,16 +55,19 @@ class study(commands.Cog):
     
     #POMODORO TECHNIQUE (to do)
     async def start_pomodoro(self, interaction):
+        self.time_tracker.timer_start(interaction.user.id)
         await interaction.followup.send("To be implemented")
 
 
     #90 MIN BLOCK TECHNIQUE (to do)
     async def start_90minblock(self, interaction: discord.Interaction):
+        self.time_tracker.timer_start(interaction.user.id)
         await interaction.followup.send("To be implemented")
 
 
     #FREEFLOW (to do)
     async def start_freeflow(self, interaction):
+        self.time_tracker.timer_start(interaction.user.id)
         await interaction.followup.send("To be implemented")
 
 

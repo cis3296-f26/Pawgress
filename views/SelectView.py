@@ -28,9 +28,9 @@ class SelectView(discord.ui.View):
     #Callback for dropdown (runs when a user picks an option)
     async def select_method(self, interaction: discord.Interaction, select: discord.ui.Select):
         self.choice = select.values[0]
-        await interaction.response.defer()
-
-        #Stop listening for interactions
+        
+        #Remove the dropdown after selection
+        await interaction.response.edit_message(view=None)  
         self.stop()
 
 
