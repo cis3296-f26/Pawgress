@@ -27,6 +27,11 @@ class study(commands.Cog):
 
         result = self.time_tracker.timer_stop(interaction.user.id)
         message = self.time_tracker.get_time(interaction.user.id)
+
+        await database.add_study_time(
+        interaction.user.id, interaction.user.name, minutes=message
+        )
+        
         if result == 0:
             await interaction.response.send_message("Timer Stopped. Total Time: " + message)
         else:
