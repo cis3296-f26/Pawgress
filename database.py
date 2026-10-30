@@ -107,7 +107,7 @@ async def get_inventory(user_id: int):
 
     #Will get a users total time studied
 async def get_study_time(discord_id: int) -> int:
-    """Returns total study time in seconds, or 0 if the user has no row yet."""
+    """Returns total study time in minutes, or 0 if the user has no row yet."""
     async with connect() as db:
         async with db.execute(
             'SELECT total_study_time FROM "user" WHERE discord_id = ?',
@@ -117,12 +117,12 @@ async def get_study_time(discord_id: int) -> int:
         return row[0] if row else 0
 
     #Will add study time to the total study time of the user
-async def add_study_time(discord_id: int, username: str, seconds: int):
+async def add_study_time(discord_id: int, username: str, minutes: int):
     """Adds seconds to the user's total, creating the user row if needed."""
     user_id = await get_or_create_user(discord_id, username)
     async with connect() as db:
         await db.execute(
             'UPDATE "user" SET total_study_time = total_study_time + ? WHERE user_id = ?',
-            (seconds, user_id),
+            (minutes, user_id),
         )
         await db.commit()
