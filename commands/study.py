@@ -41,7 +41,7 @@ class study(commands.Cog):
             return
         
         #Call the selection view for ui
-        view = SelectView()
+        view = SelectView(interaction.user)
         await interaction.response.send_message("Please select your study method:", view=view)
         await view.wait()
 

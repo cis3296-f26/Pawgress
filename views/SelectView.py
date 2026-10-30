@@ -4,9 +4,18 @@ import discord
 
 class SelectView(discord.ui.View):
 
-    def __init__(self):
+    def __init__(self, user: discord.User):
         super().__init__(timeout=60)
+        self.user = user
         self.choice = None
+
+    
+    #Ensure that only the user who initiated the command can interact with the dropdown
+    async def interaction_check(self, interaction: discord.Interaction):
+        if interaction.user != self.user:
+            await interaction.response.send_message("This is not your selection menu!", ephemeral=True)
+            return False
+        return True
 
     @discord.ui.select(
         placeholder="Select",
