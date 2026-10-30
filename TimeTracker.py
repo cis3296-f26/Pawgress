@@ -38,3 +38,11 @@ class TimeTracker:
             return f"{int(self.hashmap[str(user_id)][0] // 60)} minutes"
         else:
             return str("It's so over, man. Just give up.")
+
+    def is_running(self, user_id):
+        entry = self.hashmap.get(str(user_id))
+        return bool(entry) and entry[1] != 0
+
+    def get_seconds(self, user_id):
+        entry = self.hashmap.get(str(user_id))
+        return entry[0] if entry else 0
