@@ -20,7 +20,7 @@ class study(commands.Cog):
         }
 
     #STOP TIMER
-    @app_commands.command(name="stop", description="Stop your study timer")
+    @app_commands.command(name="stop", description="Stop your study timer.")
     @app_commands.guild_only()
     async def stop(self, interaction: discord.Interaction):
         if not await database.get_pet(interaction.guild_id):
@@ -29,13 +29,13 @@ class study(commands.Cog):
 
         session = self.sessions.pop(interaction.user.id, None)
         if session is None:
-            await interaction.response.send_message("No timer to be stopped :(")
+            await interaction.response.send_message("No timer to be stopped.")
             return
         session_min = session.stop()
         await interaction.response.send_message(f"Timer stopped. Studied for {session_min} minutes.")
 
     #SELECT STUDY TECHNIQUES AND START TIMER
-    @app_commands.command(name="start", description="Start your study timer")
+    @app_commands.command(name="start", description="Start your study timer.")
     @app_commands.guild_only()
     async def start(self, interaction: discord.Interaction):
         if not await database.get_pet(interaction.guild_id):
