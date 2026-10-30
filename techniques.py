@@ -10,7 +10,7 @@ class StudyTechnique:
 
 class Pomodoro(StudyTechnique):
     label = "Pomodoro Study Method"
-    description = "Study up for 25 minutes, then a 5 min break, then your 4th break is 15 minutes"
+    description = "Study for 25 minutes, take a 5 minute break, then your 4th break is 15 minutes"
 
     PATTERN = [
         ("Focus", 25 * 60), ("Break", 5 * 60),
@@ -24,7 +24,7 @@ class Pomodoro(StudyTechnique):
 
 class NinetyMinBlock(StudyTechnique):
     label = "90-Minute Focus Block Method"
-    description = "Focus for 90 minutes, then take a 20 min break"
+    description = "Study for 90 minutes, then take a 20 minute break"
 
     PATTERN = [
         ("Focus", 90 * 60), ("Break", 20 * 60),

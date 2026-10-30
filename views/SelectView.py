@@ -20,8 +20,8 @@ class SelectView(discord.ui.View):
     @discord.ui.select(
         placeholder="Select",
         options=[
-            discord.SelectOption(label="Pomodoro", value="pomodoro", description="Study for 25 and break for 5"),
-            discord.SelectOption(label="90minblock", value="90minblock", description="Study for 60, review for 20"),
+            discord.SelectOption(label="Pomodoro", value="pomodoro", description="Study for 25 minutes, then break for 5 minutes"),
+            discord.SelectOption(label="90minblock", value="90minblock", description="Study for 90 minutes, then break for 20 minutes"),
             discord.SelectOption(label="Freeflow", value="freeflow", description="Study with no interruptions")
         ],)
 
