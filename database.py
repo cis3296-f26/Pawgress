@@ -9,9 +9,9 @@ async def connect():
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("PRAGMA foreign_keys = ON;")
         yield db
+#Methods to interact with the database, get or add information (read, write)
 
-
-#gets a user info from the database if they exist otherwise it will add them
+#Gets a user info from the database if they exist otherwise it will add them
 async def get_or_create_user(discord_id: int, username: str) -> int:
     """Returns the internal user_id, creating the user row if needed."""
     async with connect() as db:
@@ -29,9 +29,9 @@ async def get_or_create_user(discord_id: int, username: str) -> int:
         await db.commit()
         return cur.lastrowid
 
-# pet methods (1 per server)
+#Pet methods (1 per server)
 
-    # get pet information from database
+    #Get pet information from database
 async def get_pet(guild_id: int):
     """Returns (pet_id, pet_name, pet_type, pet_hunger) or None."""
     async with connect() as db:
@@ -41,7 +41,7 @@ async def get_pet(guild_id: int):
         ) as cur:
             return await cur.fetchone()
 
-    # creates pet in the database (will not work if one exists in the server already)
+    #Creates a pet in the database (will not work if one exists in the server already)
 async def create_pet(guild_id: int, name: str, pet_type: str, hunger: int = 0):
     async with connect() as db:
         await db.execute(
@@ -51,7 +51,7 @@ async def create_pet(guild_id: int, name: str, pet_type: str, hunger: int = 0):
         )
         await db.commit()
 
-#lets the pet rename save into the database
+#Let's the pet rename save into the database
 async def rename_pet(guild_id: int, new_name: str):
     async with connect() as db:
         await db.execute(
@@ -61,9 +61,9 @@ async def rename_pet(guild_id: int, new_name: str):
         await db.commit()
 
 
-# inventory methods
+#Inventory methods for items a user purchases
 
-    #allows an item to be added to the database for a user
+    #Allows an item to be added to the database for a user
 async def add_item(user_id: int, item_id: int, amount: int = 1):
     async with connect() as db:
         await db.execute(
@@ -76,7 +76,7 @@ async def add_item(user_id: int, item_id: int, amount: int = 1):
         )
         await db.commit()
 
-    #allows an item to be removed from user inventory
+    #Allows an item to be removed from user inventory
 async def remove_item(user_id: int, item_id: int, amount: int = 1) -> bool:
     """Returns False if the user doesn't have enough."""
     async with connect() as db:
@@ -90,7 +90,7 @@ async def remove_item(user_id: int, item_id: int, amount: int = 1) -> bool:
         await db.commit()
         return cur.rowcount > 0
 
-    # allows the user to see what they have in there inventory
+    #Allows the user to see what they have in there inventory
 async def get_inventory(user_id: int):
     """Returns a list of (item_name, quantity, item_hunger_value)."""
     async with connect() as db:
@@ -104,3 +104,25 @@ async def get_inventory(user_id: int):
             (user_id,),
         ) as cur:
             return await cur.fetchall()
+
+    #Will get a users total time studied
+async def get_study_time(discord_id: int) -> int:
+    """Returns total study time in seconds, or 0 if the user has no row yet."""
+    async with connect() as db:
+        async with db.execute(
+            'SELECT total_study_time FROM "user" WHERE discord_id = ?',
+            (str(discord_id),),
+        ) as cur:
+            row = await cur.fetchone()
+        return row[0] if row else 0
+
+    #Will add study time to the total study time of the user
+async def add_study_time(discord_id: int, username: str, seconds: int):
+    """Adds seconds to the user's total, creating the user row if needed."""
+    user_id = await get_or_create_user(discord_id, username)
+    async with connect() as db:
+        await db.execute(
+            'UPDATE "user" SET total_study_time = total_study_time + ? WHERE user_id = ?',
+            (seconds, user_id),
+        )
+        await db.commit()
