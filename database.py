@@ -126,3 +126,11 @@ async def add_study_time(discord_id: int, username: str, minutes: int):
             (minutes, user_id),
         )
         await db.commit()
+
+async def get_store_catalog():
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT item_name, item_hunger_value, item_cost FROM store ORDER BY item_cost"
+        ) as cursor:
+            return await cursor.fetchall()
