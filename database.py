@@ -126,7 +126,6 @@ async def add_study_time(discord_id: int, username: str, minutes: int):
             (minutes, user_id),
         )
         await db.commit()
-<<<<<<< HEAD
 
 async def get_store_catalog():
     async with aiosqlite.connect(DB_PATH) as db:
@@ -135,5 +134,3 @@ async def get_store_catalog():
             "SELECT item_name, item_hunger_value, item_cost FROM store ORDER BY item_cost"
         ) as cursor:
             return await cursor.fetchall()
-=======
->>>>>>> 4b012d4126939839703dc89c6ecc1bfaae6a510f
