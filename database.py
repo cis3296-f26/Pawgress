@@ -135,13 +135,23 @@ async def get_store_catalog():
         ) as cursor:
             return await cursor.fetchall()
 
-async def add_coins(user_id, coins_int):
+async def add_coins(discord_id: int, username: str, coins_int: int) -> bool:
+    """Adds coins to a user, creating the user row if needed."""
+    await get_or_create_user(discord_id, username)
     async with connect() as db:
-        await db.execute(
-        'UPDATE "user" SET coins = coins + ? WHERE user_id = ?',
-            (coins_int, user_id),
+        cur = await db.execute(
+        'UPDATE "user" SET coins = coins + ? WHERE discord_id = ?',
+            (coins_int, str(discord_id)),
         )
         await db.commit()
+        return cur.rowcount > 0
 
-async def get_coins(user_id):
-    pass
+async def get_coins(discord_id: int) -> int:
+    """Returns the user's current coins."""
+    async with connect() as db:
+        async with db.execute(
+            'SELECT coins FROM "user" WHERE discord_id = ?',
+            (str(discord_id),),
+        ) as cur:
+            row = await cur.fetchone()
+        return row[0] if row else 0
