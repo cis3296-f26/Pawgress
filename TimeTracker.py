@@ -1,10 +1,10 @@
 import time
+import database as db
 
 class TimeTracker:
 
     #hashmap will hold user_id -> (hours studied, timer [null if stopped, time started if started])
     hashmap = {}
-
     def __init__(self):
         pass
 
@@ -20,11 +20,16 @@ class TimeTracker:
             self.hashmap[str(user_id)] = (0, time.time())
             return 0
 
-    def timer_stop(self, user_id):
+    async def timer_stop(self, user_id, username):
         if str(user_id) in self.hashmap:
             if self.hashmap[str(user_id)][1] != 0:
+                temp_time = (time.time() - self.hashmap[str(user_id)][1])
                 self.hashmap[str(user_id)] = (self.hashmap[str(user_id)][0] + (time.time() - self.hashmap[str(user_id)][1]), 0)
                 print(self.hashmap[str(user_id)][0])
+                #add reward of coins to user account here
+                await db.add_coins(user_id, username, temp_time // 120)
+                coins = await db.get_coins(user_id)
+                print(f"coins {coins}")
                 return 0
             else:
                 print("invalid stop")

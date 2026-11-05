@@ -67,14 +67,14 @@ class StudySession():
                 return
             await asyncio.sleep(seconds)
             if phase == "Focus":
-                self.tracker.timer_stop(self.user.id)
+                await self.tracker.timer_stop(self.user.id, self.user.name)
             phase, seconds = next(schedule)
             announce = True
 
-    def stop(self):
+    async def stop(self):
         if self._task and not self._task.done():
             self._task.cancel()
         if self.tracker.is_running(self.user.id):
-            self.tracker.timer_stop(self.user.id)
+            await self.tracker.timer_stop(self.user.id, self.user.name)
         studied = self.tracker.get_seconds(self.user.id) - self._start_total
         return int(studied // 60)

@@ -41,7 +41,7 @@ class study(commands.Cog):
         if session is None:
             await interaction.response.send_message("No timer to be stopped.")
             return
-        session_min = session.stop()
+        session_min = await session.stop()
         await interaction.response.send_message(f"Timer stopped. Studied for {session_min} minutes.")
 
     #SELECT STUDY TECHNIQUES AND START TIMER
