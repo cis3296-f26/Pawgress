@@ -62,7 +62,7 @@ class StudySession():
         announce = False
         while True:
             if phase == "Focus":
-                self.tracker.timer_start(self.user.id)
+                await self.tracker.timer_start(self.user.id)
             if announce:
                 await self.channel.send(
                     f"{self.user.mention} {phase} time for {seconds // 60} minutes."
@@ -75,10 +75,10 @@ class StudySession():
             phase, seconds = next(schedule)
             announce = True
 
-    def stop(self):
+    async def stop(self):
         if self._task and not self._task.done():
             self._task.cancel()
         if self.tracker.is_running(self.user.id):
-            self.tracker.timer_stop(self.user.id)
+            await self.tracker.timer_stop(self.user.id)
         studied = self.tracker.get_seconds(self.user.id) - self._start_total
         return int(studied // 60)

@@ -134,3 +134,14 @@ async def get_store_catalog():
             "SELECT item_name, item_hunger_value, item_cost FROM store ORDER BY item_cost"
         ) as cursor:
             return await cursor.fetchall()
+
+async def add_coins(user_id, coins_int):
+    async with connect() as db:
+        await db.execute(
+        'UPDATE "user" SET coins = coins + ? WHERE user_id = ?',
+            (coins_int, user_id),
+        )
+        await db.commit()
+
+async def get_coins(user_id):
+    pass
