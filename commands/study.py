@@ -35,7 +35,7 @@ class study(commands.Cog):
 
 
     #STOP TIMER
-    @app_commands.command(name="stop", description="Stop your study timer.")
+    @app_commands.command(name="study_stop", description="Stop your study timer.")
     @app_commands.guild_only()
     async def stop(self, interaction: discord.Interaction):
         if not await database.get_pet(interaction.guild_id):
@@ -50,7 +50,7 @@ class study(commands.Cog):
         await interaction.response.send_message(f"Timer stopped. Studied for {session_min} minutes.")
 
     #SELECT STUDY TECHNIQUES AND START TIMER
-    @app_commands.command(name="start", description="Start your study timer.")
+    @app_commands.command(name="study_start", description="Start your study timer.")
     @app_commands.describe(method="Choose your study technique")
     @app_commands.choices(method=[
         app_commands.Choice(name="Pomodoro", value="pomodoro"),

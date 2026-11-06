@@ -16,7 +16,7 @@ class Store(commands.Cog):
         self.bot = bot
 
     #STORE CATALOG
-    @app_commands.command(name="catalog", description="Opens a list of items that are avilable for purchase")
+    @app_commands.command(name="store_catalog", description="Opens a list of items that are avilable for purchase")
     @app_commands.guild_only()
     async def store_catalog(self, interaction: discord.Interaction):
         items = await database.get_store_catalog()
@@ -40,16 +40,9 @@ class Store(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="balance", description="Check how many coins you have")
-    @app_commands.guild_only()
-    async def check_balance(self, interaction: discord.Interaction):
-        coins = await database.get_coins(interaction.user.id)
-        await interaction.response.send_message(
-            f"You have **{coins}** coins", ephemeral=True
-        )
 
     #STORE BUY
-    @app_commands.command(name="buy", description="Select and buy food")
+    @app_commands.command(name="store_buy", description="Select and buy food")
     @app_commands.describe(food="Choose your food item:")
     @app_commands.choices(food=[
         app_commands.Choice(name = "Regular Food", value = 1),
@@ -74,33 +67,6 @@ class Store(commands.Cog):
         await interaction.response.send_message(
             f"{interaction.user.display_name} bought **{food.name}** for {cost} coins!"
         )
-
-
-    #CHECK INVENTORY
-    @app_commands.command(name="inventory", description="Check your inventory")
-    @app_commands.guild_only()
-    async def check_inventory(self, interaction: discord.Interaction):
-
-        user_id = await database.get_or_create_user(interaction.user.id, interaction.user.name)
-        inventory = await database.get_inventory(user_id)
-
-        if not inventory:
-            await interaction.response.send_message(
-                f"{interaction.user.display_name} has no items in their inventory.", ephemeral=True
-            )
-            return
-
-        embed = discord.Embed(title=f"{interaction.user.display_name}'s Inventory:")
-
-        for item_name, quantity, hunger_value in inventory:
-            embed.add_field(
-                name=item_name,
-                value=f"Quantity: **{quantity}**",
-                inline=True,
-            )
-
-        await interaction.response.send_message(embed=embed, ephemeral=False)
-
 
 async def setup(bot):
     await bot.add_cog(Store(bot))
