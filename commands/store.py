@@ -40,6 +40,14 @@ class Store(commands.Cog):
 
         await interaction.response.send_message(embed=embed)
 
+    @app_commands.command(name="balance", description="Check how many coins you have")
+    @app_commands.guild_only()
+    async def check_balance(self, interaction: discord.Interaction):
+        coins = await database.get_coins(interaction.user.id)
+        await interaction.response.send_message(
+            f"You have **{coins}** coins", ephemeral=True
+        )
+
     #STORE BUY
     @app_commands.command(name="buy", description="Select and buy food")
     @app_commands.describe(food="Choose your food item:")
@@ -53,12 +61,15 @@ class Store(commands.Cog):
 
         cost = COSTS[food.value]
 
-        user_id = await database.get_or_create_user(interaction.user.id, interaction.user.name)
+        new_balance = await database.purchase_item(
+            interaction.user.id,interaction.user.name,food.value,cost
+        )
 
-        #TODO: Substract the coin amount from the user's balance and update the database accordingly
-
-        #Add the item to the user's inventory in the database
-        await database.add_item(user_id, food.value, 1) 
+        if new_balance is None:
+            await interaction.response.send_message(
+                f"You don't have enough coins for {food.name}", ephemeral=True
+            )
+            return
 
         await interaction.response.send_message(
             f"{interaction.user.display_name} bought **{food.name}** for {cost} coins!"
