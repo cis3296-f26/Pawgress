@@ -156,13 +156,6 @@ async def get_coins(discord_id: int) -> int:
             row = await cur.fetchone()
         return row[0] if row else 0
 
-async def get_item(item_name: str):
-   async with connect() as db:
-       async with db.execute(
-           "SELECT item_id, item_name, item_cost FROM store where item_name = ?",
-            (item_name,),
-       ) as cur:
-           return await cur.fetchone()
 
 async def purchase_item(discord_id: int, username: str, item_id: int, cost: int):
     user_id = await get_or_create_user(discord_id, username)
