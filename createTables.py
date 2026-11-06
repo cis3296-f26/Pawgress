@@ -59,7 +59,7 @@ async def init_db():
         await db.executemany(
             "INSERT OR IGNORE INTO store (item_name, item_hunger_value, item_cost) "
             "VALUES (?, ?, ?)",
-            [("Snack", 10, 5), ("Meal", 20, 15), ("Full Restore", 100, 50)],
+            [("Regular Food", 15, 15), ("Super Food", 25, 20), ("Mega", 50, 40)],
         )
 
         await db.commit()
