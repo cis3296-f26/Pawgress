@@ -22,11 +22,16 @@ class study(commands.Cog):
     #DESCRIPTIONS FOR METHODS
     @app_commands.command(name="study_info", description="Informatio about each technique.")
     async def study_info(self, interaction: discord.Interaction):
-        await interaction.response.send_message(
-            "**Pomodoro method:** Study for 25 minutes, break for 5 minutes, fourth break is 15 minutes.\n\n"
-            "**90-Minute Block:** Study for 90 minutes, break for 20 minutes. \n\n"
-            "**Freeflow method:** Study however long you please!\n\n"
-            ,ephemeral=False)
+        embed = discord.Embed(
+            title="Study Techniques",
+            color=discord.Color.pink(),
+        )
+        embed.add_field(name="Pomodoro Method", value="Study for 25 minutes, break for 5 minutes, fourth break is 15 minutes.", inline=False)
+        embed.add_field(name="90-Minute Block", value="Study for 90 minutes, break for 20 minutes.", inline=False)
+        embed.add_field(name="Freeflow Method", value="Study however long you please!\n\n", inline=False)
+        embed.set_footer(text="Use /start to begin a study session with your chosen technique.\n")
+                         
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
     #STOP TIMER
@@ -54,9 +59,6 @@ class study(commands.Cog):
     ])
     @app_commands.guild_only()
     async def start(self, interaction: discord.Interaction, method: app_commands.Choice[str]):
-        if not await database.get_pet(interaction.guild_id):
-            await interaction.response.send_message("Pet not found.")
-            return
 
         technique = TECHNIQUES[method.value]
 

@@ -5,6 +5,11 @@ from discord.ext import commands
 
 print(database.__file__)
 print(dir(database))
+
+#1: regular, 2: super, 3: mega
+COSTS = {1: 15, 2: 20, 3: 45} 
+
+
 class Store(commands.Cog):
 
     def __init__(self, bot):
@@ -39,31 +44,51 @@ class Store(commands.Cog):
     @app_commands.command(name="buy", description="Select and buy food")
     @app_commands.describe(food="Choose your food item:")
     @app_commands.choices(food=[
-        app_commands.Choice(name = "Regular Food", value = "regularfood"),
-        app_commands.Choice(name = "Super Food", value = "superfood"),
-        app_commands.Choice(name = "Mega Food", value = "megafood")
+        app_commands.Choice(name = "Regular Food", value = 1),
+        app_commands.Choice(name = "Super Food", value = 2),
+        app_commands.Choice(name = "Mega Food", value = 3)
     ])
     @app_commands.guild_only()
-    async def store_buy(self, interaction: discord.Interaction, food: app_commands.Choice[str]):
-        if not await database.get_pet(interaction.guild_id):
-            await interaction.response.send_message("Pet not found.")
+    async def store_buy(self, interaction: discord.Interaction, food: app_commands.Choice[int]):
+
+        cost = COSTS[food.value]
+
+        user_id = await database.get_or_create_user(interaction.user.id, interaction.user.name)
+
+        #TODO: Substract the coin amount from the user's balance and update the database accordingly
+
+        #Add the item to the user's inventory in the database
+        await database.add_item(user_id, food.value, 1) 
+
+        await interaction.response.send_message(
+            f"{interaction.user.display_name} bought **{food.name}** for {cost} coins!"
+        )
+
+
+    #CHECK INVENTORY
+    @app_commands.command(name="inventory", description="Check your inventory")
+    @app_commands.guild_only()
+    async def check_inventory(self, interaction: discord.Interaction):
+
+        user_id = await database.get_or_create_user(interaction.user.id, interaction.user.name)
+        inventory = await database.get_inventory(user_id)
+
+        if not inventory:
+            await interaction.response.send_message(
+                f"{interaction.user.display_name} has no items in their inventory.", ephemeral=True
+            )
             return
 
-        #Food that was selected
-        if food.value == "regularfood":
-            hunger = 15
-            cost = 15
-        elif food.value == "superfood":
-            hunger = 25
-            cost = 20
-        elif food.value == "megafood":
-            hunger = 50
-            cost = 45
+        embed = discord.Embed(title=f"{interaction.user.display_name}'s Inventory:")
 
-        #Charge the user and update the pet's hunger (NEEDS WORK)
-        await interaction.response.send_message(
-            f"You bought **{food.name}** for {cost} coins! (+{hunger} hunger)"
-        )
+        for item_name, quantity, hunger_value in inventory:
+            embed.add_field(
+                name=item_name,
+                value=f"Quantity: **{quantity}**",
+                inline=True,
+            )
+
+        await interaction.response.send_message(embed=embed, ephemeral=False)
 
 
 async def setup(bot):
