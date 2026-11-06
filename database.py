@@ -155,3 +155,41 @@ async def get_coins(discord_id: int) -> int:
         ) as cur:
             row = await cur.fetchone()
         return row[0] if row else 0
+
+async def get_item(item_name: str):
+   async with connect() as db:
+       async with db.execute(
+           "SELECT item_id, item_name, item_cost FROM store where item_name = ?",
+            (item_name,),
+       ) as cur:
+           return await cur.fetchone()
+
+async def purchase_item(discord_id: int, username: str, item_id: int, cost: int):
+    user_id = await get_or_create_user(discord_id, username)
+    async with connect() as db:
+        cur = await db.execute(
+            'UPDATE "user" SET coins = coins - ? WHERE user_id = ? AND coins >= ?',
+            (cost,user_id, cost),
+        )
+
+        if cur.rowcount == 0:
+            return None
+
+        await db.execute(
+            """
+            INSERT INTO inventory (user_id, item_id, quantity) VALUES (?, ?, 1)
+            ON CONFLICT(user_id, item_id)
+            DO UPDATE SET quantity = quantity + 1
+            """,
+            (user_id, item_id),
+        )
+
+        async with db.execute(
+            'SELECT coins FROM "user" WHERE user_id = ?',
+                (user_id,),
+        ) as cur:
+            row = await cur.fetchone()
+        new_balance = row[0]
+
+        await db.commit()
+        return new_balance
