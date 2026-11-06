@@ -185,3 +185,11 @@ async def purchase_item(discord_id: int, username: str, item_id: int, cost: int)
 
         await db.commit()
         return new_balance
+
+async def set_pet_type(guild_id: int, new_type: str):
+    async with connect() as db:
+        await db.execute(
+            'UPDATE pet SET pet_type = ? WHERE guild_id = ?',
+            (new_type, str(guild_id)),
+        )
+        await db.commit()

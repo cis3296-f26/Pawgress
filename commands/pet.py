@@ -36,7 +36,19 @@ class Pets(commands.Cog):
         await database.rename_pet(interaction.guild_id, name)
         await interaction.response.send_message(f"Your pet is now named **{name}**!")
 
-    #SELECT PET (need to add)
+    #SELECT PET
+    PET_TYPES = ["Aj", "Bryan", "Emma", "Evan", "Walter"]
+
+    @app_commands.command(name="change_pet", description="Change what type of pet you have")
+    @app_commands.choices(pet_type=[app_commands.Choice(name=t, value=t) for t in PET_TYPES])
+    @app_commands.guild_only()
+    async def change_pet(self, interaction: discord.Interaction, pet_type: app_commands.Choice[str]):
+        if not await database.get_pet(interaction.guild_id):
+            await interaction.response.send_message("Pet not found.")
+            return
+
+        await database.set_pet_type(interaction.guild_id, pet_type.value)
+        await interaction.response.send_message(f"You now have a **{pet_type.value}**!")
 
 
 async def setup(bot):
