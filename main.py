@@ -31,6 +31,7 @@ class PawgressBot(commands.Bot):
         await self.load_extension("commands.pet")
         await self.load_extension("commands.study")
         await self.load_extension("commands.store")
+        await self.load_extension("commands.user")
 
         #Tells discord which commands are available for the bot to use
         await self.tree.sync()   
