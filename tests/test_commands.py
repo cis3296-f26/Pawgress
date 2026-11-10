@@ -1,8 +1,11 @@
 import asyncio
 from unittest.mock import MagicMock
 
+import aiosqlite
+import discord
 import pytest
 from discord import app_commands
+from discord.ext import commands
 
 import database
 from commands.help import help as Help
@@ -210,3 +213,28 @@ async def test_starting_again_stops_old_session(db, clock, bot, make_interaction
     finally:
         for session in (old, cog.sessions[111]):
             session._task.cancel()
+
+
+async def test_empty_store(db, bot, make_interaction):
+    async with aiosqlite.connect(db) as conn:
+        await conn.execute("DELETE FROM store")
+        await conn.commit()
+
+    reply = await run(Store(bot), "store_catalog", make_interaction())
+
+    assert reply.args[0] == "The store is empty right now."
+
+
+async def test_every_command_registers():
+    bot = commands.Bot(command_prefix="/", intents=discord.Intents.default())
+    for ext in ["help", "pet", "study", "store", "user"]:
+        await bot.load_extension(f"commands.{ext}")
+
+    names = {c.name for c in bot.tree.get_commands()}
+    assert names == {
+        "help",
+        "pet_create", "pet_rename", "pet_change",
+        "study_info", "study_start", "study_stop",
+        "store_catalog", "store_buy",
+        "user_balance", "user_inventory",
+    }

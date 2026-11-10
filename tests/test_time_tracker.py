@@ -94,3 +94,7 @@ async def test_under_two_minutes_earns_nothing(clock, db):
     await tracker.timer_stop(1, "alex")
 
     assert await database.get_coins(1) == 0
+
+
+def test_get_time_for_unknown_user():
+    assert TimeTracker().get_time(42) == "It's so over, man. Just give up."
