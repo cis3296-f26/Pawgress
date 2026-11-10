@@ -1,3 +1,5 @@
+from os import name
+
 import discord
 import database
 from discord import app_commands
@@ -11,21 +13,6 @@ class Pets(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    #CREATE PET
-    @app_commands.command(name="pet_create", description="Create a new pet for this server")
-    @app_commands.guild_only()
-    async def create_pet(self, interaction: discord.Interaction):
-        existing = await database.get_pet(interaction.guild_id)
-        if existing:
-            _, pet_name, pet_type, _ = existing
-            await interaction.response.send_message(f"This server already has a pet: **{pet_name}** the **{pet_type}**")
-            return
-
-        await database.create_pet(
-            # placeholders
-            interaction.guild_id, name="No name", pet_type="Dog"
-        )
-        await interaction.response.send_message(f"Your new pet has been created!")
 
     #RENAME PET
     @app_commands.command(name="pet_rename", description="Rename your server's pet")
@@ -50,7 +37,10 @@ class Pets(commands.Cog):
             return
 
         await database.set_pet_type(interaction.guild_id, pet_type.value)
-        await interaction.response.send_message(f"You now have a **{pet_type.value}**!")
+        await interaction.response.send_message(f"Your pet is now a **{pet_type.value}**!")
+
+
+    #DISPLAY PET (to-do)
 
 
 async def setup(bot):
