@@ -1,0 +1,80 @@
+from itertools import cycle
+import asyncio
+
+class StudyTechnique:
+    label = ""
+
+    def schedule(self):
+        raise NotImplementedError
+
+class Pomodoro(StudyTechnique):
+    label = "Pomodoro Study Method"
+
+    PATTERN = [
+        ("Focus", 25 * 60), ("Break", 5 * 60),
+        ("Focus", 25 * 60), ("Break", 5 * 60),
+        ("Focus", 25 * 60), ("Break", 5 * 60),
+        ("Focus", 25 * 60), ("Break", 15 * 60),
+    ]
+
+    def schedule(self):
+        return cycle(self.PATTERN)
+
+class NinetyMinBlock(StudyTechnique):
+    label = "90-Minute Focus Block Method"
+
+    PATTERN = [
+        ("Focus", 90 * 60), ("Break", 20 * 60),
+    ]
+
+    def schedule(self):
+        return cycle(self.PATTERN)
+
+class Flowtime(StudyTechnique):
+    label = "Flowtime Study Method"
+
+    def schedule(self):
+        yield "Focus", None
+
+POMODORO = Pomodoro()
+NINETY_MIN_BLOCK = NinetyMinBlock()
+FLOWTIME = Flowtime()
+
+class StudySession():
+    def __init__(self, user, channel, technique, tracker):
+        self.user = user
+        self.channel = channel
+        self.technique = technique
+        self.tracker = tracker
+        self._start_total = tracker.get_seconds(user.id)
+        self._task = None
+
+    def start(self):
+        self._task = asyncio.create_task(self.run())
+
+    async def run(self):
+        schedule = self.technique.schedule()
+        phase, seconds = next(schedule)
+        announce = False
+        while True:
+            if phase == "Focus":
+                self.tracker.timer_start(self.user.id)
+            if announce:
+                await self.channel.send(
+                    f"{self.user.mention} {phase} time for {seconds // 60} minutes."
+                )
+            if seconds is None:
+                return
+            await asyncio.sleep(seconds)
+            if phase == "Focus":
+                await self.tracker.timer_stop(self.user.id, self.user.name)
+            phase, seconds = next(schedule)
+            announce = True
+
+    async def stop(self):
+        if self._task and not self._task.done():
+            self._task.cancel()
+        if self.tracker.is_running(self.user.id):
+            await self.tracker.timer_stop(self.user.id, self.user.name)
+        studied = self.tracker.get_seconds(self.user.id) - self._start_total
+        return int(studied // 60)
