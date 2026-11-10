@@ -25,8 +25,8 @@ class help(commands.Cog):
         embed.add_field(
             name="Pet",
             value=(
-                "/create_pet - Create a new pet\n"
-                "/rename_pet - Rename your pet"
+                "/pet_create - Create a new pet\n"
+                "/pet_rename - Rename your pet"
             ),
             inline=False,
         )

@@ -19,8 +19,8 @@ If you want to run the bot for yourself on your local machine, run the python fi
 
 ### Run commands:
 /help - bot will list commands
-/create_pet - will create a new pet for your group
-/rename_pet - rename your group's pet
+/pet_create - will create a new pet for your group
+/pet_rename - rename your group's pet
 /study_info - display descriptions of each study method
 /study_start - select a study method and start a study session
 /study_stop - end your study session
