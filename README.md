@@ -28,3 +28,11 @@ If you want to run the bot for yourself on your local machine, run the python fi
 /store_buy - select and buy food for your pet
 /user_balance - check how many coins you have
 /user_inventory - check your inventory
+
+## Testing
+Install the test dependencies and run pytest from the project folder:
+
+py -m pip install -r requirements-dev.txt
+py -m pytest
+
+The tests use a temporary database so they won't touch your real one, and they don't need a Discord token. There's also a checklist for testing the bot in a real server in tests/MANUAL_TESTS.md.
