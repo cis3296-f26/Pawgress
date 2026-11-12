@@ -23,17 +23,16 @@ async def init_db():
             )
         """)
 
-        #adds this table addition of pet_last_update so nobody has to manually change the tables.
-        try:
-            await db.execute("ALTER TABLE pet ADD COLUMN pet_last_update REAL")
-        except aiosqlite.OperationalError:
-            pass
-        #adds this table addition of pet_last_update
-        for col in ("last_alert INTEGER NOT NULL DEFAULT 100", "channel_id TEXT"):
-        try:
-            await db.execute(f"ALTER TABLE pet ADD COLUMN {col}")
-        except aiosqlite.OperationalError:
-            pass
+        # Adds missing columns to older databases
+        for col in (
+            "pet_last_update REAL",
+            "last_alert INTEGER NOT NULL DEFAULT 100",
+            "channel_id TEXT"
+        ):
+            try:
+                await db.execute(f"ALTER TABLE pet ADD COLUMN {col}")
+            except aiosqlite.OperationalError:
+                pass
 
         # creates user table if is not already created
         await db.execute("""

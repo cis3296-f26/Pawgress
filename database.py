@@ -1,6 +1,7 @@
 import aiosqlite
 from contextlib import asynccontextmanager
 from createTables import DB_PATH
+import time
 
 #Global Vairables for Hunger
 HUNGER_MAX = 100
@@ -45,7 +46,7 @@ async def get_pet(guild_id: int):
             return await cur.fetchone()
 
     #Creates a pet in the database (will not work if one exists in the server already)
-async def create_pet(guild_id: int, name: str, pet_type: str, hunger: int = 0):
+async def create_pet(guild_id: int, name: str, pet_type: str, hunger: int = 100):
     async with connect() as db:
         await db.execute(
             "INSERT INTO pet (pet_name, pet_type, pet_hunger, guild_id) "
@@ -228,26 +229,22 @@ async def get_hunger(guild_id: int):
         hunger, previous_time_stamp = row
         current_time = time.time()
         if previous_time_stamp is None:
-            previous_time_stamp = now
+            previous_time_stamp = current_time
 
         lost = int((current_time - previous_time_stamp) / 3600 * HUNGER_LOSS_PER_HOUR)
         if lost > 0:
             hunger = max(0, hunger - lost)
+            # only advance the timestamp by the time actually "spent", so fractions aren't lost
             previous_time_stamp += lost * 3600 / HUNGER_LOSS_PER_HOUR
 
         await db.execute(
             "UPDATE pet SET pet_hunger = ?, pet_last_update = ? WHERE guild_id = ?",
-            (hunger, last, str(guild_id)),
+            (hunger, previous_time_stamp, str(guild_id)),
         )
-        await db.execute(
-            "UPDATE pet SET pet_hunger = ?, last_alert = 100 WHERE guild_id = ?",
-             (new_hunger, str(guild_id)),
-        )
-        
         await db.commit()
         return hunger
 
-#will allow the user 
+#w ill allow the user to add hunger to the pet
 async def add_hunger(guild_id: int, amount: int):
     """Feeds the pet. Applies decay first, then adds amount (capped at 100). Returns new hunger."""
     current = await get_hunger(guild_id)
@@ -262,7 +259,68 @@ async def add_hunger(guild_id: int, amount: int):
         await db.commit()
     return new_hunger
 
-#
+#will interact with the user logic to feed the pet
+async def feed_pet(guild_id: int, discord_id: int, username: str, item_id: int):
+    """
+    Feeds the pet one item from the user's inventory.
+    Returns (status, data):
+      ("ok", (item_name, new_hunger))
+      ("no_pet", None)
+      ("full", None)
+      ("no_item", item_name)
+    """
+    current = await get_hunger(guild_id)
+    if current is None:
+        return "no_pet", None
+    if current >= HUNGER_MAX:
+        return "full", None
+
+    user_id = await get_or_create_user(discord_id, username)
+
+    async with connect() as db:
+        async with db.execute(
+            "SELECT item_name, item_hunger_value FROM store WHERE item_id = ?",
+            (item_id,),
+        ) as cur:
+            item = await cur.fetchone()
+    item_name, hunger_value = item
+
+    if not await remove_item(user_id, item_id):
+        return "no_item", item_name
+
+    new_hunger = await add_hunger(guild_id, hunger_value)
+    return "ok", (item_name, new_hunger)
+
+    # creates the hunger bar that is to be sent to the user
 def hunger_bar(hunger: int, length: int = 10) -> str:
     filled = round(hunger / HUNGER_MAX * length)
     return "🟩" * filled + "⬛" * (length - filled) + f" {hunger}/{HUNGER_MAX}"
+
+#alert/notification methods
+
+    #will delegate one channel as the channel that will be reciving passive notifications
+async def set_alert_channel(guild_id: int, channel_id: int):
+    async with connect() as db:
+        await db.execute(
+            "UPDATE pet SET channel_id = ? WHERE guild_id = ?",
+            (str(channel_id), str(guild_id)),
+        )
+        await db.commit()
+
+    #will get all the pets information of alert and channel id relation
+async def get_all_pets():
+    """Returns (guild_id, pet_name, last_alert, channel_id) for every pet."""
+    async with connect() as db:
+        async with db.execute(
+            "SELECT guild_id, pet_name, last_alert, channel_id FROM pet"
+        ) as cur:
+            return await cur.fetchall()
+
+    #will set the time stamp of the last alert/notification sent
+async def set_last_alert(guild_id: int, level: int):
+    async with connect() as db:
+        await db.execute(
+            "UPDATE pet SET last_alert = ? WHERE guild_id = ?",
+            (level, str(guild_id)),
+        )
+        await db.commit()
