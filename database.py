@@ -244,7 +244,7 @@ async def get_hunger(guild_id: int):
         await db.commit()
         return hunger
 
-#w ill allow the user to add hunger to the pet
+#will allow the user to add hunger to the pet
 async def add_hunger(guild_id: int, amount: int):
     """Feeds the pet. Applies decay first, then adds amount (capped at 100). Returns new hunger."""
     current = await get_hunger(guild_id)
