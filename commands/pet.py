@@ -67,33 +67,30 @@ class Pets(commands.Cog):
         )
     
     #FEED PET
-    @app_commands.command(name="pet_feed", description="Feed your pet food from your inventory")
-    @app_commands.describe(food="Choose the food to feed")
+    @app_commands.command(name="pet_feed", description="Feed your pet")
+    @app_commands.describe(food="Choose what type of food to feed your pet")
     @app_commands.choices(food=[
         app_commands.Choice(name="Regular Food", value=1),
         app_commands.Choice(name="Super Food", value=2),
-        app_commands.Choice(name="Mega Food", value=3),
+        app_commands.Choice(name="Mega Food", value=3)
     ])
     @app_commands.guild_only()
     async def pet_feed(self, interaction: discord.Interaction, food: app_commands.Choice[int]):
-        status, data = await database.feed_pet(
-            interaction.guild_id, interaction.user.id, interaction.user.name, food.value
-        )
+        if not await database.get_pet(interaction.guild_id):
+            await interaction.response.send_message("Pet not found.")
+            return
 
-        if status == "no_pet":
-            await interaction.response.send_message("Pet not found.", ephemeral=True)
-        elif status == "full":
-            await interaction.response.send_message("Your pet is already full!", ephemeral=True)
-        elif status == "no_item":
-            await interaction.response.send_message(
-                f"You don't have any {food.name}. Buy some with `/store_buy`.", ephemeral=True
-            )
-        else:
-            item_name, new_hunger = data
-            await interaction.response.send_message(
-                f"{interaction.user.display_name} fed the pet **{item_name}**!\n"
-                f"Hunger: {database.hunger_bar(new_hunger)}"
-            )
+        user_id = await database.get_or_create_user(interaction.user.id, interaction.user.name)
+        if not await database.remove_item(user_id, food.value):
+            await interaction.response.send_message(f"You don't have **{food.name}**!")
+            return
+
+        hunger_restored = await database.get_item_hunger(food.value)
+        new_hunger = await database.add_hunger(interaction.guild_id, hunger_restored)
+        await interaction.response.send_message(
+            f"**{interaction.user.display_name}** fed their pet **{food.name}**!\n"
+            f"{database.hunger_bar(new_hunger)}"
+        )
 
 async def setup(bot):
     await bot.add_cog(Pets(bot))
