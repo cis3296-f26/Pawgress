@@ -291,6 +291,15 @@ async def feed_pet(guild_id: int, discord_id: int, username: str, item_id: int):
     new_hunger = await add_hunger(guild_id, hunger_value)
     return "ok", (item_name, new_hunger)
 
+async def get_item_hunger(item_id: int):
+    async with connect() as db:
+        async with db.execute(
+                "SELECT item_hunger_value FROM store WHERE item_id = ?",
+                (item_id,)
+        ) as cur:
+            row = await cur.fetchone()
+            return row[0] if row else 0
+
     # creates the hunger bar that is to be sent to the user
 def hunger_bar(hunger: int, length: int = 10) -> str:
     filled = round(hunger / HUNGER_MAX * length)
