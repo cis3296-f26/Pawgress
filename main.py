@@ -17,6 +17,7 @@ if not token:
 
 intents = discord.Intents.default()
 
+intents.guilds = True
 intents.message_content = True
 
 DEFAULT_PET_NAME = "Pawgress"
@@ -44,11 +45,8 @@ class PawgressBot(commands.Bot):
         print(f"Logged in as {self.user}")
 
 
-
     #PET CREATE: This event is triggered when the bot joins a new guild (server)
-
     async def on_guild_join(self, guild):
-
         #Create a default pet for the guild if it doesn't exist (skip if server already had one like they re-added it)
         if not await database.get_pet(guild.id):
             await database.create_pet(guild.id, DEFAULT_PET_NAME, DEFAULT_PET_TYPE)
