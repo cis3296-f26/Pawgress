@@ -26,7 +26,9 @@ class help(commands.Cog):
             name="Pet",
             value=(
                 "/pet_rename - Rename your pet\n"
-                "/pet_change - Change your pet type"
+                "/pet_change - Change your pet type\n"
+                "/pet_hunger - Check how hungry your pet is\n"
+                "/pet_feed - Feed your pet"
             ),
             inline=False,
         )
