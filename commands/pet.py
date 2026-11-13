@@ -8,6 +8,44 @@ from pet import Pet
 
 print(database.__file__)
 print(dir(database))
+
+FOOD_REACTIONS = {
+    1: [
+        "I mean yeah man whatever, Im starved over here and you offer me as close to nothing as it gets",
+        "You know I eat earlier than this, let me get hungry like this again and Im leaving",
+        "Regular food again, you could try mixing it up every once and awhile",
+        "Thank you bubby"
+    ],
+    2: [
+        "So hungry is me, my affliction it still remains",
+        "Some years ago- never mind how long precisely- having little or no food in my stomach, "
+        "I felt hunger, that is no more",
+        "I am a thinking, breathing creature, and you have made this thinking, breathing "
+        "creature, very happy today",
+        "My tummy is so so full, I couldn't eat yet another morsel",
+    ],
+    3: [
+        "Oh sweet ambrosia, how I needed this to rise from the ashes and soar again",
+        "I could not have asked for anything more, you have made my week. NO! YOU HAVE MADE MY YEAR!",
+        "Wonderful incredible amazing meal my dear, I will serve you to the ends of the earth",
+        "My humble liege, while my appreciation to your offering holds no bounds, I am starved beyond belief. "
+        "I can only nibble on this feast of kings"
+    ]
+}
+
+
+def hunger_level(hunger: int):
+    if hunger < 25:
+        return 0
+    elif hunger < 50:
+        return 1
+    elif hunger < 75:
+        return 2
+    else:
+        return 3
+
+def hunger_reaction(food_value: int, hunger: int):
+    return FOOD_REACTIONS[food_value][hunger_level(hunger)]
 class Pets(commands.Cog):
 
     def __init__(self, bot):
@@ -74,10 +112,13 @@ class Pets(commands.Cog):
             await interaction.response.send_message(f"You don't have **{food.name}**!", ephemeral=True)
             return
 
+        hunger_before = await database.get_hunger(interaction.guild_id)
+        reaction = hunger_reaction(food.value, hunger_before)
         hunger_restored = await database.get_item_hunger(food.value)
         new_hunger = await database.add_hunger(interaction.guild_id, hunger_restored)
         await interaction.response.send_message(
             f"**{interaction.user.display_name}** fed {pet[1]} **{food.name}**!\n"
+            f"**{reaction}**\n"
             f"{database.hunger_bar(new_hunger)}"
         )
 
