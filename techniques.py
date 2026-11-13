@@ -21,7 +21,7 @@ class Pomodoro(StudyTechnique):
         return cycle(self.PATTERN)
 
 class NinetyMinBlock(StudyTechnique):
-    label = "90-Minute Focus Block Method"
+    label = "90-Minute Focus Block Methd"
 
     PATTERN = [
         ("Focus", 90 * 60), ("Break", 20 * 60),
