@@ -19,8 +19,8 @@ class DisplayPet:
         self.hunger = max(0, self.hunger - 1)
         return
 
-    #need function that sends image dependent on hunger
-    #need function to swap image array on pet type change
+    # need function that sends image dependent on hunger
+    # need function to swap image array on pet type change
 
     def display(self):
         return self.image_array[self.hunger]
