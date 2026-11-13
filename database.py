@@ -1,7 +1,11 @@
 import aiosqlite
 from contextlib import asynccontextmanager
 from createTables import DB_PATH
+import time
 
+#Global Vairables for Hunger
+HUNGER_MAX = 100
+HUNGER_LOSS_PER_HOUR = 5
 
 @asynccontextmanager
 async def connect():
@@ -42,7 +46,7 @@ async def get_pet(guild_id: int):
             return await cur.fetchone()
 
     #Creates a pet in the database (will not work if one exists in the server already)
-async def create_pet(guild_id: int, name: str, pet_type: str, hunger: int = 0):
+async def create_pet(guild_id: int, name: str, pet_type: str, hunger: int = 100):
     async with connect() as db:
         await db.execute(
             "INSERT INTO pet (pet_name, pet_type, pet_hunger, guild_id) "
@@ -60,8 +64,17 @@ async def rename_pet(guild_id: int, new_name: str):
         )
         await db.commit()
 
+    # changes the pet's type in the database
+async def set_pet_type(guild_id: int, new_type: str):
+    async with connect() as db:
+        await db.execute(
+            'UPDATE pet SET pet_type = ? WHERE guild_id = ?',
+            (new_type, str(guild_id)),
+        )
+        await db.commit()
 
-#Inventory methods for items a user purchases
+
+#Inventory & Shop methods
 
     #Allows an item to be added to the database for a user
 async def add_item(user_id: int, item_id: int, amount: int = 1):
@@ -105,28 +118,7 @@ async def get_inventory(user_id: int):
         ) as cur:
             return await cur.fetchall()
 
-    #Will get a users total time studied
-async def get_study_time(discord_id: int) -> int:
-    """Returns total study time in minutes, or 0 if the user has no row yet."""
-    async with connect() as db:
-        async with db.execute(
-            'SELECT total_study_time FROM "user" WHERE discord_id = ?',
-            (str(discord_id),),
-        ) as cur:
-            row = await cur.fetchone()
-        return row[0] if row else 0
-
-    #Will add study time to the total study time of the user
-async def add_study_time(discord_id: int, username: str, minutes: int):
-    """Adds seconds to the user's total, creating the user row if needed."""
-    user_id = await get_or_create_user(discord_id, username)
-    async with connect() as db:
-        await db.execute(
-            'UPDATE "user" SET total_study_time = total_study_time + ? WHERE user_id = ?',
-            (minutes, user_id),
-        )
-        await db.commit()
-
+    #will return all the items avilable in the database
 async def get_store_catalog():
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
@@ -135,27 +127,7 @@ async def get_store_catalog():
         ) as cursor:
             return await cursor.fetchall()
 
-async def add_coins(discord_id: int, username: str, coins_int: int) -> bool:
-    """Adds coins to a user, creating the user row if needed."""
-    await get_or_create_user(discord_id, username)
-    async with connect() as db:
-        cur = await db.execute(
-        'UPDATE "user" SET coins = coins + ? WHERE discord_id = ?',
-            (coins_int, str(discord_id)),
-        )
-        await db.commit()
-        return cur.rowcount > 0
-
-async def get_coins(discord_id: int) -> int:
-    """Returns the user's current coins."""
-    async with connect() as db:
-        async with db.execute(
-            'SELECT coins FROM "user" WHERE discord_id = ?',
-            (str(discord_id),),
-        ) as cur:
-            row = await cur.fetchone()
-        return row[0] if row else 0
-
+    # adds a purchased item to there inventory
 async def purchase_item(discord_id: int, username: str, item_id: int, cost: int):
     user_id = await get_or_create_user(discord_id, username)
     async with connect() as db:
@@ -186,10 +158,178 @@ async def purchase_item(discord_id: int, username: str, item_id: int, cost: int)
         await db.commit()
         return new_balance
 
-async def set_pet_type(guild_id: int, new_type: str):
+
+
+
+#study time methods
+    #Will get a users total time studied
+async def get_study_time(discord_id: int) -> int:
+    """Returns total study time in minutes, or 0 if the user has no row yet."""
+    async with connect() as db:
+        async with db.execute(
+            'SELECT total_study_time FROM "user" WHERE discord_id = ?',
+            (str(discord_id),),
+        ) as cur:
+            row = await cur.fetchone()
+        return row[0] if row else 0
+
+
+    #Will add study time to the total study time of the user
+async def add_study_time(discord_id: int, username: str, minutes: int):
+    """Adds seconds to the user's total, creating the user row if needed."""
+    user_id = await get_or_create_user(discord_id, username)
     async with connect() as db:
         await db.execute(
-            'UPDATE pet SET pet_type = ? WHERE guild_id = ?',
-            (new_type, str(guild_id)),
+            'UPDATE "user" SET total_study_time = total_study_time + ? WHERE user_id = ?',
+            (minutes, user_id),
+        )
+        await db.commit()
+
+
+# coin methods
+
+    # will add coins to the users current coin balance
+async def add_coins(discord_id: int, username: str, coins_int: int) -> bool:
+    """Adds coins to a user, creating the user row if needed."""
+    await get_or_create_user(discord_id, username)
+    async with connect() as db:
+        cur = await db.execute(
+        'UPDATE "user" SET coins = coins + ? WHERE discord_id = ?',
+            (coins_int, str(discord_id)),
+        )
+        await db.commit()
+        return cur.rowcount > 0
+
+    # gets the users coins that are in the database
+async def get_coins(discord_id: int) -> int:
+    """Returns the user's current coins."""
+    async with connect() as db:
+        async with db.execute(
+            'SELECT coins FROM "user" WHERE discord_id = ?',
+            (str(discord_id),),
+        ) as cur:
+            row = await cur.fetchone()
+        return row[0] if row else 0
+
+
+# pet hunger methods
+    #will return the pet's current hunger
+    #Creates a time stamp and will
+async def get_hunger(guild_id: int):
+    """Returns the pet's current hunger (0-100) after applying decay, or None if no pet."""
+    async with connect() as db:
+        async with db.execute(
+            "SELECT pet_hunger, pet_last_update FROM pet WHERE guild_id = ?",
+            (str(guild_id),),
+        ) as cur:
+            row = await cur.fetchone()
+        if row is None:
+            return None
+
+        hunger, previous_time_stamp = row
+        current_time = time.time()
+        if previous_time_stamp is None:
+            previous_time_stamp = current_time
+
+        lost = int((current_time - previous_time_stamp) / 3600 * HUNGER_LOSS_PER_HOUR)
+        if lost > 0:
+            hunger = max(0, hunger - lost)
+            # only advance the timestamp by the time actually "spent", so fractions aren't lost
+            previous_time_stamp += lost * 3600 / HUNGER_LOSS_PER_HOUR
+
+        await db.execute(
+            "UPDATE pet SET pet_hunger = ?, pet_last_update = ? WHERE guild_id = ?",
+            (hunger, previous_time_stamp, str(guild_id)),
+        )
+        await db.commit()
+        return hunger
+
+#will allow the user to add hunger to the pet
+async def add_hunger(guild_id: int, amount: int):
+    """Feeds the pet. Applies decay first, then adds amount (capped at 100). Returns new hunger."""
+    current = await get_hunger(guild_id)
+    if current is None:
+        return None
+    new_hunger = min(HUNGER_MAX, current + amount)
+    async with connect() as db:
+        await db.execute(
+            "UPDATE pet SET pet_hunger = ? WHERE guild_id = ?",
+            (new_hunger, str(guild_id)),
+        )
+        await db.commit()
+    return new_hunger
+
+#will interact with the user logic to feed the pet
+async def feed_pet(guild_id: int, discord_id: int, username: str, item_id: int):
+    """
+    Feeds the pet one item from the user's inventory.
+    Returns (status, data):
+      ("ok", (item_name, new_hunger))
+      ("no_pet", None)
+      ("full", None)
+      ("no_item", item_name)
+    """
+    current = await get_hunger(guild_id)
+    if current is None:
+        return "no_pet", None
+    if current >= HUNGER_MAX:
+        return "full", None
+
+    user_id = await get_or_create_user(discord_id, username)
+
+    async with connect() as db:
+        async with db.execute(
+            "SELECT item_name, item_hunger_value FROM store WHERE item_id = ?",
+            (item_id,),
+        ) as cur:
+            item = await cur.fetchone()
+    item_name, hunger_value = item
+
+    if not await remove_item(user_id, item_id):
+        return "no_item", item_name
+
+    new_hunger = await add_hunger(guild_id, hunger_value)
+    return "ok", (item_name, new_hunger)
+
+async def get_item_hunger(item_id: int):
+    async with connect() as db:
+        async with db.execute(
+                "SELECT item_hunger_value FROM store WHERE item_id = ?",
+                (item_id,)
+        ) as cur:
+            row = await cur.fetchone()
+            return row[0] if row else 0
+
+    # creates the hunger bar that is to be sent to the user
+def hunger_bar(hunger: int, length: int = 10) -> str:
+    filled = round(hunger / HUNGER_MAX * length)
+    return "🟩" * filled + "⬛" * (length - filled) + f" {hunger}/{HUNGER_MAX}"
+
+#alert/notification methods
+
+    #will delegate one channel as the channel that will be reciving passive notifications
+async def set_alert_channel(guild_id: int, channel_id: int):
+    async with connect() as db:
+        await db.execute(
+            "UPDATE pet SET channel_id = ? WHERE guild_id = ?",
+            (str(channel_id), str(guild_id)),
+        )
+        await db.commit()
+
+    #will get all the pets information of alert and channel id relation
+async def get_all_pets():
+    """Returns (guild_id, pet_name, last_alert, channel_id) for every pet."""
+    async with connect() as db:
+        async with db.execute(
+            "SELECT guild_id, pet_name, last_alert, channel_id FROM pet"
+        ) as cur:
+            return await cur.fetchall()
+
+    #will set the time stamp of the last alert/notification sent
+async def set_last_alert(guild_id: int, level: int):
+    async with connect() as db:
+        await db.execute(
+            "UPDATE pet SET last_alert = ? WHERE guild_id = ?",
+            (level, str(guild_id)),
         )
         await db.commit()
