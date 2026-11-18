@@ -1,11 +1,11 @@
 from os import name
-import display_pet
 import discord
-import database
 from discord import app_commands
 from discord.ext import commands
 from pet import Pet
 from PIL import Image
+import DisplayPet
+import database
 
 print(database.__file__)
 print(dir(database))
@@ -49,7 +49,7 @@ def hunger_reaction(food_value: int, hunger: int):
     return FOOD_REACTIONS[food_value][hunger_level(hunger)]
 class Pets(commands.Cog):
 
-    disp = display_pet.DisplayPet()
+    disp = DisplayPet.DisplayPet()
     def __init__(self, bot):
         self.bot = bot
 
@@ -65,38 +65,6 @@ class Pets(commands.Cog):
         await database.rename_pet(interaction.guild_id, name)
         await interaction.response.send_message(f"Your pet is now named **{name}**!")
 
-    @app_commands.command(name="display_pet", description="display the state of your pet")
-    @app_commands.guild_only()
-    async def display_pet(self, interaction: discord.Interaction):
-        if not await database.get_pet(interaction.guild_id):
-            await interaction.response.send_message("Pet not found.")
-            return
-        image_path = self.disp.display()
-        file = discord.File(image_path, filename="pet.png")
-
-        embed = discord.Embed(
-            title="Your pet:",
-            color=discord.Color.red(),
-        )
-        embed.set_image(url="attachment://pet.png")
-
-        await interaction.response.send_message(embed=embed, file=file)
-
-    @app_commands.command(name="inc_h", description="evil test")
-    @app_commands.guild_only()
-    async def inc_h(self, interaction: discord.Interaction):
-        if not await database.get_pet(interaction.guild_id):
-            await interaction.response.send_message("Pet not found.")
-            return
-        self.disp.hunger_increase()
-
-    @app_commands.command(name="dec_h", description="evil test")
-    @app_commands.guild_only()
-    async def inc_d(self, interaction: discord.Interaction):
-        if not await database.get_pet(interaction.guild_id):
-            await interaction.response.send_message("Pet not found.")
-            return
-        self.disp.hunger_decrease()
 
     #SELECT PET
     PET_TYPES = ["Dog", "Cat", "Capybara", "Ferret", "Raccoon"]
@@ -111,20 +79,6 @@ class Pets(commands.Cog):
 
         await database.set_pet_type(interaction.guild_id, pet_type.value)
         await interaction.response.send_message(f"You now have a **{pet_type.value}**!")
-    
-    #GET PET HUNGER
-    @app_commands.command(name="pet_hunger", description="Check how hungry your pet is")
-    @app_commands.guild_only()
-    async def pet_hunger(self, interaction: discord.Interaction):
-        pet = await database.get_pet(interaction.guild_id)
-        if not pet:
-            await interaction.response.send_message("Pet not found.", ephemeral=True)
-            return
-
-        hunger = await database.get_hunger(interaction.guild_id)
-        await interaction.response.send_message(
-            f"**{pet[1]}**\nHunger: {database.hunger_bar(hunger)}"
-        )
     
     #FEED PET
     @app_commands.command(name="pet_feed", description="Feed your pet")
@@ -156,6 +110,53 @@ class Pets(commands.Cog):
             f"**{reaction}**\n"
             f"{database.hunger_bar(new_hunger)}"
         )
+
+    #PET DISPLAY
+    @app_commands.command(name="pet_display", description="Display the state of your pet")
+    @app_commands.guild_only()
+    async def pet_display(self, interaction: discord.Interaction):
+
+        #(pet_id, pet_name, pet_type, pet_hunger) or None
+
+        pet = await database.get_pet(interaction.guild_id)
+        hunger = await database.get_hunger(interaction.guild_id)
+
+        if not pet:
+            await interaction.response.send_message("Pet not found.")
+            return
+        image_path = self.disp.display()
+        file = discord.File(image_path, filename="pet.png")
+
+        embed = discord.Embed(
+            title = f"{pet[1]} the {pet[2]}"
+        )
+            
+        embed.add_field(
+            name="Hunger",
+            value=database.hunger_bar(hunger),
+            inline=False
+        )
+
+        embed.set_thumbnail(url="attachment://pet.png")
+
+        await interaction.response.send_message(embed=embed, file=file)
+
+    @app_commands.command(name="inc_h", description="evil test")
+    @app_commands.guild_only()
+    async def inc_h(self, interaction: discord.Interaction):
+        if not await database.get_pet(interaction.guild_id):
+            await interaction.response.send_message("Pet not found.")
+            return
+        self.disp.hunger_increase()
+
+    @app_commands.command(name="dec_h", description="evil test")
+    @app_commands.guild_only()
+    async def inc_d(self, interaction: discord.Interaction):
+        if not await database.get_pet(interaction.guild_id):
+            await interaction.response.send_message("Pet not found.")
+            return
+        self.disp.hunger_decrease()
+
 
 async def setup(bot):
     await bot.add_cog(Pets(bot))

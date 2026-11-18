@@ -63,7 +63,7 @@ class study(commands.Cog):
         technique = TECHNIQUES[method.value]
 
         #STORE session into dictionary under user's ID
-        session = techniques.StudySession(interaction.user, interaction.channel, technique, self.time_tracker)
+        session = Techniques.StudySession(interaction.user, interaction.channel, technique, self.time_tracker)
         #RETRIEVE whatever is stored under this id
         self.sessions[interaction.user.id] = session
         session.start()
