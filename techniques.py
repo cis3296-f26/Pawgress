@@ -3,14 +3,12 @@ import asyncio
 
 class StudyTechnique:
     label = ""
-    description = ""
 
     def schedule(self):
         raise NotImplementedError
 
 class Pomodoro(StudyTechnique):
     label = "Pomodoro Study Method"
-    description = "Study for 25 minutes, take a 5 minute break, then your 4th break is 15 minutes."
 
     PATTERN = [
         ("Focus", 25 * 60), ("Break", 5 * 60),
@@ -23,8 +21,7 @@ class Pomodoro(StudyTechnique):
         return cycle(self.PATTERN)
 
 class NinetyMinBlock(StudyTechnique):
-    label = "90-Minute Focus Block Method"
-    description = "Study for 90 minutes, then take a 20 minute break."
+    label = "90-Minute Focus Block Methd"
 
     PATTERN = [
         ("Focus", 90 * 60), ("Break", 20 * 60),
@@ -35,7 +32,6 @@ class NinetyMinBlock(StudyTechnique):
 
 class Flowtime(StudyTechnique):
     label = "Flowtime Study Method"
-    description = "Study however long you please, then take a proportional break :)"
 
     def schedule(self):
         yield "Focus", None

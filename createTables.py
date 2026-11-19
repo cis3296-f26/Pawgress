@@ -13,13 +13,26 @@ async def init_db():
         # creates pet table if is not already created
         await db.execute("""
             CREATE TABLE IF NOT EXISTS pet (
-                pet_id     INTEGER PRIMARY KEY AUTOINCREMENT,
-                pet_name   TEXT NOT NULL,
-                pet_type   TEXT,
-                pet_hunger INTEGER NOT NULL DEFAULT 0,
-                guild_id   TEXT NOT NULL UNIQUE
+                pet_id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                pet_name        TEXT NOT NULL,
+                pet_type        TEXT,
+                pet_hunger      INTEGER NOT NULL DEFAULT 100,
+                pet_last_update REAL,
+                last_alert      INTEGER NOT NULL DEFAULT 100,
+                guild_id        TEXT NOT NULL UNIQUE
             )
         """)
+
+        # Adds missing columns to older databases
+        for col in (
+            "pet_last_update REAL",
+            "last_alert INTEGER NOT NULL DEFAULT 100",
+            "channel_id TEXT"
+        ):
+            try:
+                await db.execute(f"ALTER TABLE pet ADD COLUMN {col}")
+            except aiosqlite.OperationalError:
+                pass
 
         # creates user table if is not already created
         await db.execute("""
