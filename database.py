@@ -134,3 +134,55 @@ async def get_store_catalog():
             "SELECT item_name, item_hunger_value, item_cost FROM store ORDER BY item_cost"
         ) as cursor:
             return await cursor.fetchall()
+
+async def add_coins(discord_id: int, username: str, coins_int: int) -> bool:
+    """Adds coins to a user, creating the user row if needed."""
+    await get_or_create_user(discord_id, username)
+    async with connect() as db:
+        cur = await db.execute(
+        'UPDATE "user" SET coins = coins + ? WHERE discord_id = ?',
+            (coins_int, str(discord_id)),
+        )
+        await db.commit()
+        return cur.rowcount > 0
+
+async def get_coins(discord_id: int) -> int:
+    """Returns the user's current coins."""
+    async with connect() as db:
+        async with db.execute(
+            'SELECT coins FROM "user" WHERE discord_id = ?',
+            (str(discord_id),),
+        ) as cur:
+            row = await cur.fetchone()
+        return row[0] if row else 0
+
+
+async def purchase_item(discord_id: int, username: str, item_id: int, cost: int):
+    user_id = await get_or_create_user(discord_id, username)
+    async with connect() as db:
+        cur = await db.execute(
+            'UPDATE "user" SET coins = coins - ? WHERE user_id = ? AND coins >= ?',
+            (cost,user_id, cost),
+        )
+
+        if cur.rowcount == 0:
+            return None
+
+        await db.execute(
+            """
+            INSERT INTO inventory (user_id, item_id, quantity) VALUES (?, ?, 1)
+            ON CONFLICT(user_id, item_id)
+            DO UPDATE SET quantity = quantity + 1
+            """,
+            (user_id, item_id),
+        )
+
+        async with db.execute(
+            'SELECT coins FROM "user" WHERE user_id = ?',
+                (user_id,),
+        ) as cur:
+            row = await cur.fetchone()
+        new_balance = row[0]
+
+        await db.commit()
+        return new_balance
