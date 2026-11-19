@@ -19,7 +19,8 @@ async def init_db():
                 pet_hunger      INTEGER NOT NULL DEFAULT 100,
                 pet_last_update REAL,
                 last_alert      INTEGER NOT NULL DEFAULT 100,
-                guild_id        TEXT NOT NULL UNIQUE
+                guild_id        TEXT NOT NULL UNIQUE,
+                channel_id        TEXT NOT NULL UNIQUE
             )
         """)
 
@@ -28,6 +29,7 @@ async def init_db():
             "pet_last_update REAL",
             "last_alert INTEGER NOT NULL DEFAULT 100",
             "channel_id TEXT"
+
         ):
             try:
                 await db.execute(f"ALTER TABLE pet ADD COLUMN {col}")
@@ -52,9 +54,17 @@ async def init_db():
                 item_id           INTEGER PRIMARY KEY AUTOINCREMENT,
                 item_name         TEXT NOT NULL UNIQUE,
                 item_hunger_value INTEGER NOT NULL,
-                item_cost         INTEGER NOT NULL
+                item_cost         INTEGER NOT NULL,
+                stock             INTEGER NOT NULL DEFAULT 0
             )
         """)
+        for col in (
+                    "stock INTEGER NOT NULL",
+                ):
+                    try:
+                        await db.execute(f"ALTER TABLE store ADD COLUMN {col}")
+                    except aiosqlite.OperationalError:
+                        pass
 
         # creates inventory table if is not already created
         await db.execute("""
@@ -68,7 +78,7 @@ async def init_db():
             )
         """)
 
-        # placeholder for shop items (feel free to remove later)
+        # shop items
         await db.executemany(
             "INSERT OR IGNORE INTO store (item_name, item_hunger_value, item_cost) "
             "VALUES (?, ?, ?)",

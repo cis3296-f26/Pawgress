@@ -2,6 +2,7 @@ import aiosqlite
 from contextlib import asynccontextmanager
 from createTables import DB_PATH
 import time
+import random
 
 #Global Vairables for Hunger
 HUNGER_MAX = 100
@@ -157,8 +158,25 @@ async def purchase_item(discord_id: int, username: str, item_id: int, cost: int)
 
         await db.commit()
         return new_balance
-
-
+    
+    # will restock the store with random intervals.
+async def restock():
+    STOCK_RANGES = {
+    "Snack":        (6, 10),  # common
+    "Meal":         (2, 7),   # uncommon
+    "Mega Food":    (0, 5),   # rare
+    "Golden Treat": (0, 2),   # legendary
+    }
+    new_stock = [
+        (random.randint(lo, hi), name)
+        for name, (lo, hi) in STOCK_RANGES.items()
+    ]
+    async with connect() as db:
+            await db.execute(
+            "UPDATE store SET stock = ? WHERE item_name = ?",
+            new_stock,
+            )
+            await db.commit()
 
 
 #study time methods
