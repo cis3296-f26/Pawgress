@@ -22,4 +22,4 @@ class DisplayPet:
     # need function to swap image array on pet type change
 
     def display(self, hunger):
-        return self.image_array[hunger // 25]
+        return self.image_array[max(0, hunger - 1) // 25]
