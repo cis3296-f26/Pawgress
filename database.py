@@ -333,3 +333,18 @@ async def set_last_alert(guild_id: int, level: int):
             (level, str(guild_id)),
         )
         await db.commit()
+
+async def gift_coins(gifter_id: int, giftee_id: int, amount: int):
+    async with connect() as db:
+        cur = await db.execute(
+            'UPDATE "user" SET coins = coins - ? WHERE discord_id = ? and coins >= ?',
+            (amount, str(gifter_id), amount),
+        )
+        if cur.rowcount == 0:
+            return False
+        await db.execute(
+            'UPDATE "user" SET coins = coins + ? WHERE discord_id = ?',
+            (amount, str(giftee_id)),
+        )
+        await db.commit()
+        return True
