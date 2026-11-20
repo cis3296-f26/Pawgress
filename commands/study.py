@@ -1,14 +1,14 @@
 import discord
 import database
-import Techniques
+import techniques
 from discord import app_commands
 from discord.ext import commands
 import TimeTracker
 
 TECHNIQUES = {
-    "pomodoro": Techniques.POMODORO,
-    "90minblock": Techniques.NINETY_MIN_BLOCK,
-    "freeflow": Techniques.FLOWTIME
+    "pomodoro": techniques.POMODORO,
+    "90minblock": techniques.NINETY_MIN_BLOCK,
+    "freeflow": techniques.FLOWTIME
 }
 
 class study(commands.Cog):
