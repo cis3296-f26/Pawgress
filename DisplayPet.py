@@ -1,11 +1,10 @@
-from PIL import Image
 #pip install pillow
 class DisplayPet:
 
     #pet will have 4 levels of hunger; start as 0, goes to 3 when starved
     hunger = 0
     #this will eventually become an array of actual images to send.
-    image_array = ["images/pet_test/pet_test_0.png", "images/pet_test/pet_test_1.png", "images/pet_test/pet_test_2.png", "images/pet_test/pet_test_3.png"]
+    image_array = ["images/pet_test/pet_test_3.jpg", "images/pet_test/pet_test_2.jpg", "images/pet_test/pet_test_1.jpg", "images/pet_test/pet_test_0.jpg"]
 
     def __init__(self):
         pass
@@ -22,5 +21,5 @@ class DisplayPet:
     # need function that sends image dependent on hunger
     # need function to swap image array on pet type change
 
-    def display(self):
-        return self.image_array[self.hunger]
+    def display(self, hunger):
+        return self.image_array[max(0, hunger - 1) // 25]

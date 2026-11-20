@@ -63,9 +63,11 @@ class PawgressBot(commands.Bot):
             )
 
         if channel is not None:
+            await database.set_alert_channel(guild.id, channel.id)
             await channel.send(
                 f"Hello! I'm **{DEFAULT_PET_NAME}** the **{DEFAULT_PET_TYPE}**, your new study companion! 🐾\n"
-                f"Use `/pet_rename` and `/pet_change` to make me your own, or `/help` to see everything I can do."
+                f"Use `/pet_rename` and `/pet_change` to make me your own, or `/help` to see everything I can do.\n"
+                f"I'll post alerts here. Use `/set_alert_channel` to pick a different channel."
             )
 
 

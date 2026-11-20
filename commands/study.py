@@ -1,14 +1,14 @@
 import discord
 import database
-import Techniques
+import techniques
 from discord import app_commands
 from discord.ext import commands
 import TimeTracker
 
-TECHNIQUES = {
-    "pomodoro": Techniques.POMODORO,
-    "90minblock": Techniques.NINETY_MIN_BLOCK,
-    "freeflow": Techniques.FLOWTIME
+techniques = {
+    "pomodoro": techniques.POMODORO,
+    "90minblock": techniques.NINETY_MIN_BLOCK,
+    "freeflow": techniques.FLOWTIME
 }
 
 class study(commands.Cog):
@@ -23,7 +23,7 @@ class study(commands.Cog):
     @app_commands.command(name="study_info", description="Informatio about each technique.")
     async def study_info(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="Study Techniques",
+            title="Study techniques",
             color=discord.Color.pink(),
         )
         embed.add_field(name="Pomodoro Method", value="Study for 25 minutes, break for 5 minutes, fourth break is 15 minutes.", inline=False)
@@ -49,7 +49,7 @@ class study(commands.Cog):
         session_min = await session.stop()
         await interaction.response.send_message(f"Timer stopped. Studied for {session_min} minutes.")
 
-    #SELECT STUDY TECHNIQUES AND START TIMER
+    #SELECT STUDY techniques AND START TIMER
     @app_commands.command(name="study_start", description="Start your study timer.")
     @app_commands.describe(method="Choose your study technique")
     @app_commands.choices(method=[
@@ -60,7 +60,7 @@ class study(commands.Cog):
     @app_commands.guild_only()
     async def start(self, interaction: discord.Interaction, method: app_commands.Choice[str]):
 
-        technique = TECHNIQUES[method.value]
+        technique = techniques[method.value]
 
         #STORE session into dictionary under user's ID
         session = techniques.StudySession(interaction.user, interaction.channel, technique, self.time_tracker)
