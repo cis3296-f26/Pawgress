@@ -151,11 +151,20 @@ class Pets(commands.Cog):
 
     @app_commands.command(name="dec_h", description="evil test")
     @app_commands.guild_only()
-    async def inc_d(self, interaction: discord.Interaction):
+    async def dec_h(self, interaction: discord.Interaction):
         if not await database.get_pet(interaction.guild_id):
             await interaction.response.send_message("Pet not found.")
             return
         self.disp.hunger_decrease()
+
+
+    @app_commands.command(name="pet_channel", description="Modify where pet messages are sent")
+    @app_commands.guild_only()
+    async def pet_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):
+
+        await database.set_alert_channel(interaction.guild_id, channel.id)
+
+        await interaction.response.send_message(f"Pet messages will now be sent to {channel.mention}.")
 
 
 async def setup(bot):

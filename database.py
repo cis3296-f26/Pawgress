@@ -34,7 +34,7 @@ async def get_or_create_user(discord_id: int, username: str) -> int:
         await db.commit()
         return cur.lastrowid
 
-#Pet methods (1 per server)
+#PET METHODS----------------------------------------------------------------------------------------------------------------------------------------------------
 
     #Get pet information from database
 async def get_pet(guild_id: int):
@@ -75,7 +75,7 @@ async def set_pet_type(guild_id: int, new_type: str):
         await db.commit()
 
 
-#Inventory & Shop methods
+#INVENTORY AND STORE METHODS---------------------------------------------------------------------------------------------------------------------------------------
 
     #Allows an item to be added to the database for a user
 async def add_item(user_id: int, item_id: int, amount: int = 1):
@@ -239,7 +239,7 @@ async def get_coins(discord_id: int) -> int:
             row = await cur.fetchone()
         return row[0] if row else 0
 
-# pet hunger methods
+# PET HUNGER METHODS------------------------------------------------------------------------------------------------------------------------------------------------
     #will return the pet's current hunger
     #Creates a time stamp and will
 async def get_hunger(guild_id: int):
@@ -332,7 +332,7 @@ def hunger_bar(hunger: int, length: int = 10) -> str:
     filled = round(hunger / HUNGER_MAX * length)
     return "🟩" * filled + "⬛" * (length - filled) + f" {hunger}/{HUNGER_MAX}"
 
-#alert/notification methods
+#ALERT AND NOTIFICATION METHODS-----------------------------------------------------------------------------------------------------------------------------
 
     #will delegate one channel as the channel that will be reciving passive notifications
 async def set_alert_channel(guild_id: int, channel_id: int):
@@ -342,6 +342,19 @@ async def set_alert_channel(guild_id: int, channel_id: int):
             (str(channel_id), str(guild_id)),
         )
         await db.commit()
+        
+async def get_alert_channel(guild_id: int):
+    async with connect() as db:
+        cursor = await db.execute(
+            "SELECT channel_id FROM pet WHERE guild_id = ?",
+            (str(guild_id),),
+        )
+        row = await cursor.fetchone()
+
+    if row is None or row[0] is None:
+        return None
+
+    return int(row[0])
 
     #will get all the pets information of alert and channel id relation
 async def get_all_pets():

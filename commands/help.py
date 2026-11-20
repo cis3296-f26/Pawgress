@@ -28,7 +28,8 @@ class help(commands.Cog):
                 "/pet_rename - Rename your pet\n"
                 "/pet_change - Change your pet type\n"
                 "/pet_hunger - Check how hungry your pet is\n"
-                "/pet_feed - Feed your pet"
+                "/pet_feed - Feed your pet\n"
+                "/pet_channel - Modify where pet messages are sent"
             ),
             inline=False,
         )
@@ -60,12 +61,6 @@ class help(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=False)
 
-    ''' Evan's secret feature?
-    @app_commands.command(name="walter", description="Make it end")
-    @app_commands.guild_only()
-    async def walter(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Walter.")
-    '''
 
 async def setup(bot):
     await bot.add_cog(help(bot))
