@@ -69,6 +69,16 @@ class User(commands.Cog):
 
         await interaction.response.send_message(embed=embed, ephemeral=False)
 
+    @app_commands.command(name="gift", description="Gift coins")
+    @app_commands.guild_only()
+    async def gift_coins(self, interaction: discord.Interaction, member: discord.Member, amount: int):
+        if amount < 1:
+            await interaction.response.send_message("Cannot gift less than 1", ephemeral=True)
+            return
+        if await database.gift_coins(interaction.user.id, member.id, amount):
+            await interaction.response.send_message(f"**{interaction.user.display_name}** gifted **{amount}** coins to **{member.mention}**!")
+        else:
+            await interaction.response.send_message("Too few coins to gift", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(User(bot))
