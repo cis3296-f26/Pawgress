@@ -124,7 +124,8 @@ async def get_store_catalog():
     async with aiosqlite.connect(DB_PATH) as db:
         db.row_factory = aiosqlite.Row
         async with db.execute(
-            "SELECT item_name, item_hunger_value, item_cost FROM store ORDER BY item_cost"
+            "SELECT item_name, item_hunger_value, item_cost, stock "
+            "FROM store ORDER BY item_cost"
         ) as cursor:
             return await cursor.fetchall()
 
@@ -162,21 +163,30 @@ async def purchase_item(discord_id: int, username: str, item_id: int, cost: int)
     # will restock the store with random intervals.
 async def restock():
     STOCK_RANGES = {
-    "Snack":        (6, 10),  # common
-    "Meal":         (2, 7),   # uncommon
-    "Mega Food":    (0, 5),   # rare
-    "Golden Treat": (0, 2),   # legendary
+        "Regular Food": (6, 10),
+        "Super Food":   (2, 7),
+        "Mega Food":    (0, 5),
+        "Golden Treat": (0, 2),
     }
-    new_stock = [
-        (random.randint(lo, hi), name)
+    new_stock = {
+        name: random.randint(lo, hi)
         for name, (lo, hi) in STOCK_RANGES.items()
-    ]
+    }
     async with connect() as db:
-            await db.execute(
+        await db.executemany(
             "UPDATE store SET stock = ? WHERE item_name = ?",
-            new_stock,
-            )
-            await db.commit()
+            [(stock, name) for name, stock in new_stock.items()],
+        )
+        await db.commit()
+    return new_stock
+
+async def get_restock_channels():
+    async with connect() as db:
+        async with db.execute(
+            "SELECT channel_id FROM pet WHERE channel_id IS NOT NULL"
+        ) as cur:
+            rows = await cur.fetchall()
+    return [int(row[0]) for row in rows]
 
 
 #study time methods

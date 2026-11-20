@@ -157,6 +157,25 @@ class Pets(commands.Cog):
             return
         self.disp.hunger_decrease()
 
+    @app_commands.command(name="pet_channel", description="Choose the channel where I post store and hunger alerts")
+    @app_commands.describe(channel="The channel for notifications")
+    @app_commands.default_permissions(manage_channels=True)
+    @app_commands.guild_only()
+    async def set_alert_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):
+        if not await database.get_pet(interaction.guild_id):
+            await interaction.response.send_message("Pet not found.", ephemeral=True)
+            return
+
+        if not channel.permissions_for(interaction.guild.me).send_messages:
+            await interaction.response.send_message(
+                f"I can't send messages in {channel.mention}. Pick another channel or give me permission there.",
+                ephemeral=True,
+            )
+            return
+
+        await database.set_alert_channel(interaction.guild_id, channel.id)
+        await interaction.response.send_message(f"Alerts will now be posted in {channel.mention}!")
+
 
 async def setup(bot):
     await bot.add_cog(Pets(bot))

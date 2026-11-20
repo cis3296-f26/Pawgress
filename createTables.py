@@ -20,7 +20,7 @@ async def init_db():
                 pet_last_update REAL,
                 last_alert      INTEGER NOT NULL DEFAULT 100,
                 guild_id        TEXT NOT NULL UNIQUE,
-                channel_id        TEXT NOT NULL UNIQUE
+                channel_id      TEXT
             )
         """)
 
@@ -59,12 +59,12 @@ async def init_db():
             )
         """)
         for col in (
-                    "stock INTEGER NOT NULL",
-                ):
-                    try:
-                        await db.execute(f"ALTER TABLE store ADD COLUMN {col}")
-                    except aiosqlite.OperationalError:
-                        pass
+            "stock INTEGER NOT NULL DEFAULT 0",
+        ):
+            try:
+                await db.execute(f"ALTER TABLE store ADD COLUMN {col}")
+            except aiosqlite.OperationalError:
+                pass
 
         # creates inventory table if is not already created
         await db.execute("""
@@ -82,7 +82,7 @@ async def init_db():
         await db.executemany(
             "INSERT OR IGNORE INTO store (item_name, item_hunger_value, item_cost) "
             "VALUES (?, ?, ?)",
-            [("Snack", 10, 5), ("Meal", 20, 15), ("Mega Food", 50, 40), ("Golden Treat", 100, 70)]
+            [("Regular Food", 10, 5), ("Super Food", 20, 15), ("Mega Food", 50, 40), ("Golden Treat", 100, 70)]
         )
 
         await db.commit()
