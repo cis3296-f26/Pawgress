@@ -37,7 +37,7 @@ class PawgressBot(commands.Bot):
         await self.load_extension("commands.study")
         await self.load_extension("commands.store")
         await self.load_extension("commands.user")
-        
+
         await self.load_extension("HungerMonitor")
 
         #Tells discord which commands are available for the bot to use
@@ -67,7 +67,7 @@ class PawgressBot(commands.Bot):
             await channel.send(
                 f"Hello! I'm **{DEFAULT_PET_NAME}** the **{DEFAULT_PET_TYPE}**, your new study companion! 🐾\n"
                 f"Use `/pet_rename` and `/pet_change` to make me your own, or `/help` to see everything I can do.\n"
-                f"I'll post alerts here. Use `/set_alert_channel` to pick a different channel."
+                f"-# I'll post alerts here. Use `/pet_channel` to pick a different channel."
             )
 
 
